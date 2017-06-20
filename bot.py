@@ -1,4 +1,5 @@
 import telebot
+from telebot.util import extract_arguments
 import os
 import logging
 import pytz
@@ -35,8 +36,6 @@ def em_grupo(mensagem):
     return mensagem.chat.type in ["group", "supergroup"]
 
 def destino(mensagem):
-    #if mensagem.from_user:
-    #    return mensagem.from_user.id
     return mensagem.chat.id
 
 def bot_responda(mensagem, resposta):
@@ -124,11 +123,11 @@ def send_stats(message):
     if protecao_spam_do_grupo(message):
         return
     stats = db.get_stats()
-    mensagem = STAT_CAB
+    estatistica = STAT_CAB
     for estado in stats[0]:
-        mensagem += STAT_ESTADO.format(estado)
-    mensagem += STAT_ROD.format(stats[1])
-    bot_responda(message, mensagem)
+        estatistica += STAT_ESTADO.format(estado)
+    estatistica += STAT_ROD.format(stats[1])
+    bot_responda(message, estatistica)
 
 
 @bot.message_handler(commands=['eventos'])
@@ -151,11 +150,11 @@ def send_eventos(message):
 def send_membro(message):
     if protecao_spam_do_grupo(message):
         return
-    params = message.text.split()
-    if len(params) < 2:
+    params = extract_arguments(message.text)
+    if not params:
         bot_responda(message, MEMBRO_AJUDA)
         return
-    estado = params[1].lower().strip()
+    estado = params.lower().strip()
 
     db_estado = db.get_estado(estado)
     if db_estado:
@@ -184,10 +183,9 @@ def send_hora(message):
     }
     bot_responda(message, HORA.format(**horarios))
 
-
-_logger = telebot.logger
-telebot.logger.setLevel(logging.DEBUG)
-
-bot.polling(none_stop=True)
-
-
+if __name__ == '__main__':
+    _logger = telebot.logger
+    telebot.logger.setLevel(logging.DEBUG)
+    bot.polling(none_stop=True)
+    
+    
